@@ -921,6 +921,14 @@ class PreforkServer(CommonServer):
                               worker.__class__.__name__,
                               pid,
                               worker.watchdog_timeout)
+                # Dump stack trace of the timed-out worker before killing it
+                _logger.info("Dumping stack trace of timed-out worker (%s) before termination", pid)
+                try:
+                    # Send SIGQUIT to trigger stack dump in the worker process
+                    self.worker_kill(pid, signal.SIGQUIT)
+                    time.sleep(0.1)
+                except OSError:
+                    pass
                 self.worker_kill(pid, signal.SIGKILL)
 
     def process_spawn(self):
